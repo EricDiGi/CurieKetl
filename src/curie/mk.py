@@ -64,6 +64,8 @@ class Documentation:
                 _template = jenv.from_string(pkg_resources.read_text('curie.defaults.jinja', template))
                 _endpoint = ensure_rooting(endpoint.format(**mapped_args))
                 results = func(*args, **kwargs)
+                if not os.path.exists(os.path.dirname(_endpoint)):
+                    os.makedirs(os.path.dirname(_endpoint))
                 with open(_endpoint, 'w') as f:
                     f.write(_template.render(**results))
                 return results

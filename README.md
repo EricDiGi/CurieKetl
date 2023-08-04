@@ -51,6 +51,18 @@ This is the beginning of your pipeline project. Please make note of the project 
     curie etl --clean <pipeline (.)> --facet <facet (.)>
     ```
 
+6. **Automated Documentation** - Curie is self-documenting, with plenty of options to add more insight. To generate documentation for your project, run the following command:
+
+    Change your working directory to the location of your project. Then run the following command:
+    ```bash
+    curie docs generate
+    ```
+    And to view the documentation, run the following command:
+    ```bash
+    curie docs serve
+    ```
+    This will launch a local server that will allow you to view your documentation in your browser.
+
 ### Configuration Files 1.2.0
 
 There are two primary configuration files that you will need to edit to get your project up and running. These are `connections.yaml` and `pathways.yaml`. `connections.yaml` contains the information needed to connect to your database. `pathways.yaml` contains the information needed to associate pipeline blueprints with your database connection. 
