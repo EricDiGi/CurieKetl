@@ -1,0 +1,126 @@
+{% macro packDependencyTrees(name, etl) -%}
+
+=== "Run"
+
+    ```mermaid
+    stateDiagram
+        direction LR
+    {% for node in etl -%}
+    {# Test if run is a key of etl[node] #}
+    {% if etl[node].run %}
+    {% if etl[node].run.depends_on -%}
+    {% for dep in etl[node].run.depends_on -%}
+        {{dep}} --> {{node}}
+    {% endfor -%}
+    {% endif -%}
+    {% endif -%}
+    {% endfor -%}
+    ```
+
+=== "Save"
+    
+    ```mermaid
+    stateDiagram
+        direction LR
+    {%- for node in etl %}
+    {# Test if save is a key of etl[node] -#}
+    {%- if etl[node].save %}
+    {%- if etl[node].save.depends_on %}
+    {%- for dep in etl[node].save.depends_on %}
+        {{dep}} --> {{node}}
+    {% endfor -%}
+    {% endif -%}
+    {% endif -%}
+    {% endfor -%}
+    ```
+{% endmacro -%}
+
+{% macro packFieldsTable(fields) -%}
+{% if fields %}
+__Column Definitions__
+{% if fields %}
+| Column Name | Type | Description | Primary Key | Foreign Key | Nullable | Default Value |
+| ----------- | ---- | ----------- | ----------- | ----------- | -------- | ------------- |
+{% for field in fields %}
+{#- Wrap all fields in if-statements using in-line format  -#}
+| {% if field.name %}{{field.name}}{% endif %} | {% if field.type %}{{field.type}}{% endif %} | {% if field.description %}{{field.description}}{% endif %} | {% if field.primary_key %}:material-key:{% endif %} | {% if field.foreign_key %}:material-key-outline:{% endif %} | {% if field.nullable %}{{field.nullable}}{% endif %} | {% if field.default_value %}{{field.default_value}}{% endif %}
+{% endfor %}
+{% endif %}
+{% endif %}
+{% endmacro -%}
+
+# {{pipeline_name}}
+
+## DAG
+
+{{packDependencyTrees(pipeline_name, etl)}}
+
+## Environment Variables
+
+| Variable Name | Description | Default Value |
+| ------------- | ----------- | ------------- |
+{% for var in arguments %}
+{#-  -#}
+| {{var}} | {% if var.description %}{{var.description}}{% endif %} | {% if arguments[var] %}{{arguments[var]}}{% else %}{{arguments[var].value}}{% endif %} |
+{% endfor %}
+
+## Table Definitions
+
+{% for node in etl %}
+
+### {{node}}
+
+??? example "A {{title(etl[node].manifest)}} in the '{{etl[node].schema}}' schema."
+
+    ```sql
+    SELECT * FROM {{etl[node].schema}}.{{node}} LIMIT 10
+    ```
+
+{% if etl[node].description%}
+{{etl[node].description}}
+{% endif %}
+
+{% if etl[node].run %}
+=== "Run"
+
+    
+    {% if etl[node].run.query%}
+    ```sql title="Code Source: Direct Query"
+{% filter indent()%}
+{{etl[node].run.query}}
+{% endfilter %}
+    ```
+    {% else %}
+    ```sql title="Code Source: {{etl[node].run.script}}"
+{% filter indent()%}
+{% set script_file = etl[node].run.script %}
+{{ import_raw(script_file) }}
+{% endfilter %}
+    ```
+    {% endif %}
+{% endif %}
+{% if etl[node].save %}
+=== "Save"
+    {% if etl[node].save.query%}
+    ```sql title="Code Source: Direct Query"
+{% filter indent()%}
+{{etl[node].save.query}}
+{% endfilter %}
+    ```
+    {% else %}
+    ```sql title="Code Source: {{etl[node].save.script}}"
+{% filter indent()%}
+{% set script_file = etl[node].save.script %}
+{{ import_raw(script_file) }}
+{% endfilter %}
+    ```
+    {% endif %}
+{% endif %}
+
+{% if etl[node].fields%}
+{{packFieldsTable(etl[node].fields)}}
+{% endif %}
+--------------------
+{% endfor %}
+
+

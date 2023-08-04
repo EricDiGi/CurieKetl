@@ -4,24 +4,39 @@ import logging as log
 import os
 import subprocess
 import sys
+import time
 from zipfile import ZipFile
 
 from .lab import Curie
+from .mk import Documentation
+from .utils import ensure_rooting
+
+global watch_list
+watch_list = []
 
 def generate_docs():
+    global watch_list
     try:
         subprocess.run(["mkdocs", "build", "--config-file", "docs-settings.yaml"])
         log.info("Documentation generated using mkdocs.")
+        docs = Documentation()
+        watch_list = docs.get_watch()
     except Exception as e:
         log.error("Error generating documentation:", str(e))
 
 def serve_docs():
+    global watch_list
     try:
+        docs = Documentation()
+        watch_list = docs.get_watch()
         subprocess.run(["mkdocs", "serve", "--config-file", "docs-settings.yaml"])
     except Exception as e:
         log.error("Error serving documentation:", str(e))
 
 def __initialize_project(args):
+        watch_list = [
+            ensure_rooting("./config/pathways.yaml"),
+        ]
     # initialize a new project
         print("Initializing new project: " + args.init)
         # check if project already exists

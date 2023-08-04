@@ -1,6 +1,6 @@
 {% macro packPathwaysTable(paths) -%}
 {% for ketl in paths -%}
-| {{ketl}} | {{paths[ketl].description}} | [Go to {{ketl}}](#){ .md-button } |
+| {{ketl}} | {{paths[ketl].description}} | [Go to {{ketl}}](./pipes/{{ketl}}.md){ .md-button } |
 {% endfor %}
 {%- endmacro %}
 
@@ -8,7 +8,7 @@
 === "Authors"
 {% filter indent(width=4)%}
 {% for author in authors -%}
-[{{author.name}}](mailto:{{author.email}}){.md-button}
+[{{author.name}} {% if author.is_primary %}:material-star:{% endif %}](mailto:{{author.email}}){.md-button}
 {% endfor -%}
 {% endfilter %}
 

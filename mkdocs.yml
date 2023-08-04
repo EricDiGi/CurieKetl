@@ -7,9 +7,13 @@ theme:
     - navigation.top
 nav:
   - Home: index.md
-  - Lab: lab.md
-  - Inca: inca.md
-  - Utilities: utils/index.md
+  - Software:
+    - Overview: software/software.md
+    - Lab: software/lab.md
+    - Inca: software/inca.md
+    - Utilities: software/utils/index.md
+  - Administrative:
+    - Kanban: admin/kanban.md
 plugins:
   - mkdocstrings
 markdown_extensions:
@@ -26,3 +30,5 @@ markdown_extensions:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
+extra_javascript:
+  - docs/extra/mermaid-expansion.js
