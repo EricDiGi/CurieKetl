@@ -1,0 +1,52 @@
+{% macro packPathwaysTable(paths) -%}
+{% for ketl in paths -%}
+| {{ketl}} | {{paths[ketl].description}} | [Go to {{ketl}}](#){ .md-button } |
+{% endfor %}
+{%- endmacro %}
+
+{% macro packAuthorsGrid(authors) -%}
+=== "Authors"
+{% filter indent(width=4)%}
+{% for author in authors -%}
+[{{author.name}}](mailto:{{author.email}}){.md-button}
+{% endfor -%}
+{% endfilter %}
+
+{%- endmacro %}
+
+{% macro packTagsGrid(tags) -%}
+=== "Tags"
+{% filter indent(width=4)%}
+{% for tag in tags -%}
+[{{tag}}](#){.md-button .md-button-disabled}
+{% endfor -%}
+{% endfilter %}
+{%- endmacro %}
+
+# Pipelines
+
+Pipelines are ETL definitions that can be run on a schedule or on demand. They are defined in YAML and can be run using the `curie etl` command line tool.
+
+| Name | Description | Project |
+| ---- | ----------- | ------- |
+{{ packPathwaysTable(Pathways) }}
+
+# Metadata
+
+{% for ketl in Pathways -%}
+
+## __{{ketl}}__
+
+{{Pathways[ketl].description}}
+{%if Pathways[ketl].meta -%}
+{#  #}
+{% if Pathways[ketl].meta.authors -%}
+{{packAuthorsGrid(Pathways[ketl].meta.authors)}}
+{% endif -%}
+{% if Pathways[ketl].meta.tags -%}
+{{packTagsGrid(Pathways[ketl].meta.tags)}}
+{% endif -%}
+
+{% endif %}
+
+{%endfor%}

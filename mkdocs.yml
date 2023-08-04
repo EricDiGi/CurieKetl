@@ -1,0 +1,28 @@
+site_name: Curie Documentation
+site_description: Documentation for Curie
+theme: 
+  name: material
+  features:
+    - toc.integrate
+    - navigation.top
+nav:
+  - Home: index.md
+  - Lab: lab.md
+  - Inca: inca.md
+  - Utilities: utils/index.md
+plugins:
+  - mkdocstrings
+markdown_extensions:
+  - md_in_html
+  - attr_list
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
