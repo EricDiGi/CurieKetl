@@ -7,5 +7,8 @@
 
 # // import sources
 # // from inca import Chasqui
-from .lab import Curie
-from . import mk
+try:
+    from .lab import Curie
+    from . import mk
+except FileNotFoundError as e:
+    pass
