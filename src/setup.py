@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 
 setup(name='curie',
-      version='0.0.1',
+      version='{{VERSION_PLACEHOLDER}}',
       author='Eric DiGioacchino',
       url='https://github.com/EricDiGi/CurieKetl',
       keywords=['etl', 'data', 'data engineering', 'data science', 'mlops', 'devops'],
