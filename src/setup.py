@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 
 setup(name='pycurie',
-      version='0.0.02',
+      version='0.0.21',
       author='Eric DiGioacchino',
       url='https://github.com/EricDiGi/CurieKetl',
       keywords=['etl', 'data', 'data engineering', 'data science', 'mlops', 'devops'],
@@ -20,6 +20,7 @@ setup(name='pycurie',
           ]
       },
       package_data={
-            "curie.defaults": ["*"]
+            "curie.defaults": ["*"],
+            "curie.defaults.jinja": ["*"]
       }
 )
