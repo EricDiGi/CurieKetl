@@ -18,5 +18,8 @@ setup(name='pycurie',
           'console_scripts': [
               'curie = curie.__main__:main'
           ]
+      },
+      package_data={
+            "curie.defaults": ["*"]
       }
 )
