@@ -11,7 +11,7 @@ setup(name='curie',
         "Intended Audience :: Developers",
         "Programming Language :: Python :: 3"
         ],
-        long_description=open('README.md').read(),
+        long_description=open('../README.md').read(),
         long_description_content_type='text/markdown',
       packages=find_packages(),
       entry_points={
