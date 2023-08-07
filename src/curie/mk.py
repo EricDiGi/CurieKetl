@@ -33,8 +33,6 @@ class Documentation:
         self.config = ensure_rooting(config)
         self.pathways = yaml.safe_load(open(self.config).read())
 
-        self.watch_list = [ensure_rooting('./blueprints'), self.config]
-
         self.site_config = self.pathways['Documentation']
         self.site_config['site']['nav'] = {'pipelines': []}
 
@@ -44,7 +42,6 @@ class Documentation:
 
         for pipe in pipes:
             blueprint_file = ensure_rooting(self.pathways['Pathways'][pipe]['blueprint'])
-            self.watch_list.append(blueprint_file)
             if not os.path.exists(blueprint_file):
                 raise FileNotFoundError(f"Blueprint file for {pipe} not found at {blueprint_file}.")
             blueprint = yaml.safe_load(open(blueprint_file).read())
@@ -52,9 +49,6 @@ class Documentation:
         
         self.render_site_config()
         print(self.site_config)
-    
-    def get_watch(self):
-        return self.watch_list
     
     def document(template, endpoint):
         def decorator(func):

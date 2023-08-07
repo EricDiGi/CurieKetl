@@ -6,37 +6,31 @@ import subprocess
 import sys
 import time
 from zipfile import ZipFile
+import yaml
 
-from .lab import Curie
-from .mk import Documentation
-from .utils import ensure_rooting
+try:
+    from .lab import Curie
+    from .mk import Documentation
+    from .utils import ensure_rooting
+except FileNotFoundError as e:
+    pass # this is fine, other errors will be raised if there is a problem. Doing this allows us to initialize a project without the lab and mk modules.
 
-global watch_list
-watch_list = []
-
-def generate_docs():
-    global watch_list
+def generate_docs(args):
     try:
         subprocess.run(["mkdocs", "build", "--config-file", "docs-settings.yaml"])
         log.info("Documentation generated using mkdocs.")
         docs = Documentation()
-        watch_list = docs.get_watch()
     except Exception as e:
         log.error("Error generating documentation:", str(e))
 
-def serve_docs():
-    global watch_list
+def serve_docs(args):
     try:
         docs = Documentation()
-        watch_list = docs.get_watch()
         subprocess.run(["mkdocs", "serve", "--config-file", "docs-settings.yaml"])
     except Exception as e:
         log.error("Error serving documentation:", str(e))
 
 def __initialize_project(args):
-        watch_list = [
-            ensure_rooting("./config/pathways.yaml"),
-        ]
     # initialize a new project
         print("Initializing new project: " + args.init)
         # check if project already exists
@@ -49,11 +43,64 @@ def __initialize_project(args):
                 zipFile.extractall(path=args.init)
             log.info("Success: Project initialized.")
 
+def add_pipeline(args):
+    project_def_file = ensure_rooting('./project.yaml')
+    project_def = yaml.safe_load(open(project_def_file).read())['Configuration']
+    connections_file, pathways_file = [ensure_rooting(project_def[x]) for x in ['connections', 'pathways']]
+
+    print("Adding pipeline: " + args.name)
+    # if a connection is specified, check if it exists
+    connection_found = False
+    if hasattr(args, "connection") and args.connection is not None:
+        connections = yaml.safe_load(open(connections_file).read())
+        for dbtype in connections:
+            if args.connection in connections[dbtype]:
+                connection_found = True
+                break
+        if not connection_found:
+            return log.error("Error: Connection not found.")
+        
+    # check if pipeline already exists
+    if os.path.exists(pathways_file):
+        pathways = yaml.safe_load(open(pathways_file).read())
+        name_in_files = lambda n,f: any([n in x for x in f])
+        if args.name in pathways['Pathways'] or name_in_files(args.name, os.listdir('./blueprints')):
+            return log.error("Error: Pipeline already exists.")
+        else:
+            pathways['Pathways'][args.name] = {
+                'connection': '' if not hasattr(args, "connection") or args.connection is None else args.connection,
+                'blueprint': f'./blueprints/{args.name}.yaml',
+                'description': ''
+            }
+            with open(pathways_file, 'w') as f:
+                yaml.dump(pathways, f)
+
+            # create blueprint
+            blueprint_file = ensure_rooting(f'./blueprints/{args.name}.yaml')
+            with open(blueprint_file, 'w') as f:
+                yaml.dump({
+                    "sync": {
+                        "target": "default",
+                        "overwrite": True
+                    },
+                    "arguments": {'limit':100},
+                    "etl": {
+                        "some_table":{
+                            "manifest": 'table',
+                            "schema": "public",
+                            "save": {
+                                "query": "SELECT * FROM {{this}}"
+                            }
+                        }
+                    }
+                }, f)
+    pass
+
 
 def main():
     # initialize parser
     parser = argparse.ArgumentParser(description="Curie - A Python-based framework for database agnostic information routing.", prog="curie")
-    subparsers = parser.add_subparsers(help="Curie commands", dest="command")
+    subparsers = parser.add_subparsers(help="Curie commands", dest="command", required=True)
 
     # docs arguments
     docs_parser = subparsers.add_parser("docs", help="Documentation commands")
@@ -67,7 +114,17 @@ def main():
 
     # etl arguments
     etl_parser = subparsers.add_parser("etl", help="ETL commands")
+    etl_subparsers = etl_parser.add_subparsers(help="ETL commands", dest="etl_command")
+    
+    # ETL functions
 
+    # Add a pipeline
+    etl_parser_add = etl_subparsers.add_parser("add", help="Add a pipeline")
+    etl_parser_add.add_argument('-n', '--name', help="Name of the pipeline", action="store", metavar="<pipeline_name>")
+    etl_parser_add.add_argument('-c', '--connection', help="Connection to use for the pipeline", action="store", metavar="<connection_name>")
+    etl_parser_add.set_defaults(func=add_pipeline)
+
+    # ETL arguments
     etl_parser.add_argument('-v','--version', help="Print the version of Curie", action="store_true")
     etl_parser.add_argument('-i', '--init', help="Initialize a new project", action="store", metavar="<project_name>")
 
@@ -88,12 +145,13 @@ def main():
         if args.show_dag:
             log.info("DAG ++ " + str(prep.show_dag(use_filenames=True)))
 
-
     # USE SUBPARSERS
-    args = parser.parse_args()
+    args, extras = parser.parse_known_args()
+
 
     if hasattr(args, "func"):
-        args.func()
+        print("Running command: " + args.command)
+        args.func(args)
     elif args.command == "etl":
         log.basicConfig(level=args.loglevel, format='%(asctime)s - %(levelname)s - %(message)s')
         args.tables = args.tables if args.tables is not None else ['.']

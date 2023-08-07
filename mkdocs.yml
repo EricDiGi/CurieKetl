@@ -12,23 +12,33 @@ nav:
     - Lab: software/lab.md
     - Inca: software/inca.md
     - Utilities: software/utils/index.md
-  - Administrative:
-    - Kanban: admin/kanban.md
+  - Configuration:
+    - Connections: configs/connections.md
+    - Pathways: configs/pathways.md
+    - Blueprints: configs/blueprints.md
 plugins:
   - mkdocstrings
 markdown_extensions:
-  - md_in_html
+  - tables
   - attr_list
+  - md_in_html
+  - admonition
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
       pygments_lang_class: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
   - pymdownx.inlinehilite
   - pymdownx.snippets
+  - pymdownx.details
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true 
 extra_javascript:
   - docs/extra/mermaid-expansion.js
