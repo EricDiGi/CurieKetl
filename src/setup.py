@@ -1,7 +1,7 @@
 # A simple setup script
 from setuptools import setup, find_packages
 
-setup(name='curie',
+setup(name='pycurie',
       version='0.0.1',
       author='Eric DiGioacchino',
       url='https://github.com/EricDiGi/CurieKetl',
