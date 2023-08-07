@@ -21,6 +21,6 @@ setup(name='pycurie',
       },
       package_data={
             "curie.defaults": ["*"],
-            "curie.defaults.jinja": ["*"]
+            "curie.defaults.jinja": ["*.md.j2", "*.yaml.j2"]
       }
 )
