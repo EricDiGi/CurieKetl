@@ -1,6 +1,22 @@
 # Welcome to your Curie Project!
 
-
+<table>
+<tr>
+<th>New Release Coming Soon!</th>
+</tr>
+<tr>
+<td>
+<b>What's New?</b>
+    <ul>
+        <li>Improved Error Detection</li>
+        <li>Optimized project structure</li>
+        <li>Variants - Now you can coordinate actions based on lists of variables, and reuse scripts within a node.</li>
+        <li>Add reminders to connections - when a connection produces an error your reminder will be printed with the error.</li>
+        <li>Pass the results of one table to it's children as an iterable parameter (Only in Save Mode)</li>
+    </ul>
+</td>
+</tr>
+</table>
 
 This is the beginning of your pipeline project. Please make note of the project structure in your file explorer. And make note that any reference to a file path should be relative to the root of your project.
 
