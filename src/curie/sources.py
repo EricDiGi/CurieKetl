@@ -68,6 +68,7 @@ class Redshift(Database):
         return {
             'seed': lambda q: [q],
             'replace': lambda q: ['DROP TABLE IF EXISTS {{this}}', 'CREATE TABLE {{this}} AS (' + q + ')'],
+            'truncate': lambda q: ['TRUNCATE TABLE {{this}}', 'INSERT INTO {{this}} (' + q + ')'],
         }
     def execute(self, query, **kwargs):
         self.results_ = None

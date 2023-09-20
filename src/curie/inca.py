@@ -146,6 +146,7 @@ class Chasqui:
                     log.warning('Defaulting to preset query.')
                 else:
                     log.warning(f'Error preparing query for "{node}" using {mode} mode: SKIPPING ASSUMED ROOT TABLE.')
+                    log.error(e)
         return config
     
     def execute(self, tables:list):
