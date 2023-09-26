@@ -29,7 +29,8 @@ class EnvironmentFile(dict):
         if os.path.exists(self.__file):
             return dotenv_values(self.__file)
         else:
-            return dict()
+            log.error(f'Environment file "{self.__file}" does not exist. Please check your configuration.')
+            return {}
 
 class AwsSecretManager(dict): # TODO: implement in the cloud and check that this works
     """

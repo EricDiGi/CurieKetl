@@ -133,13 +133,9 @@ class SourceTree(dict):
     def prepare(self, config):
         for source in config:
             for conn in config[source]:
-                try:
-                    temp = {conn: getattr(sources, source)(
-                        **config[source][conn], defer_import=self.defer_import)}
-                    self.update(temp)
-                except Exception as e:
-                    log.info("Notice: Could not load source: " + source +
-                             " with connection: " + conn + ". Check your configuration file.")
+                temp = {conn: getattr(sources, source)(
+                    **config[source][conn], defer_import=self.defer_import)}
+                self.update(temp)
         return self
 
 
@@ -169,6 +165,7 @@ class Connections(dict):
         self.__file = ensure_rooting(obj)
         if os.path.exists(self.__file):
             return yaml.safe_load(open(self.__file))
+
 
     def __identify_and_load(self):
         """

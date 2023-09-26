@@ -9,7 +9,7 @@ import subprocess
 class Database:
     def __init__(self, host, port:int, user, password, database, **kwargs):
         self.host_ = host
-        self.port_ = int(port)
+        self.port_ = None if port == '' else int(port)
         self.user_ = user
         self.password_ = password
         self.database_ = database
