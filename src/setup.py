@@ -14,6 +14,12 @@ setup(name='pycurie',
         long_description=open('../README.md').read(),
         long_description_content_type='text/markdown',
       packages=find_packages(),
+      install_requires=[
+          'PyYAML',
+          'Jinja2',
+          'boto3',
+          'python-dotenv'
+      ],
       entry_points={
           'console_scripts': [
               'curie = curie.__main__:main'

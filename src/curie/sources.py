@@ -46,7 +46,7 @@ class Redshift(Database):
         try:
             return all([imp.find_module('redshift_connector')])
         except ImportError:
-            return False
+            raise ImportError("Error: Could not import redshift_connector. Please install redshift_connector using 'pip install redshift_connector'.")
 
     def connect(self, help=False):
         # use global variables to connect to redshift
@@ -109,9 +109,9 @@ class MySQL(Database):
     def __validate_imports(self):
         # check if psycopg2 and redshift_connector are installed
         try:
-            return all([imp.find_module('redshift_connector')])
+            return all([imp.find_module('mysql')])
         except ImportError:
-            return False
+            raise ImportError("Error: Could not import mysql. Please install mysql using 'pip install mysql'.")
 
     def connect(self):
         # use global variables to connect to redshift
