@@ -1,0 +1,50 @@
+# Projects
+
+{# Description #}
+{%- macro Description(elem) -%}
+{#- Return "" if there is no description key -#}
+{#- Return the description otherwise -#}
+{%- if (elem.meta is defined) and (elem.meta.description is defined) -%}
+{{elem.meta.description}}
+{%- endif -%}
+{%- endmacro -%}
+
+{# Author #}
+{%- macro Author(elem) -%}
+{#- Return "" if there is no author key -#}
+{#- Return the author otherwise -#}
+{%- if (elem.meta is defined) and (elem.meta.authors is defined) -%}
+
+{# Search for is_primary in author otherwise default to first in list #}
+{%- set primary = elem.meta.authors | selectattr("is_primary", "equalto", true) | list | first -%}
+{%- if primary is defined -%}
+{{primary.name}}
+{%- else -%}
+{{elem.meta.authors[0].name}}
+{%- endif -%}
+
+{%- endif -%}
+{%- endmacro -%}
+
+{# Created #}
+{%- macro Created(elem) -%}
+{#- Return "" if there is no created key -#}
+{#- Return the created date otherwise -#}
+{%- if (elem.meta is defined) and (elem.meta.created_at is defined) -%}
+{{elem.meta.created_at}}
+{%- endif -%}
+{%- endmacro -%}
+
+{# Button Link to Page (use Name) #}
+{%- macro LinkToPipe(pipe) -%}
+{#- :octicons-chevron-right: -#}
+[:fontawesome-solid-chevron-right:](./pipes/{{pipe.name}}.md){.md-button}
+{%- endmacro -%}
+
+
+
+| Project | Description | Author | Created |  |
+| ------- | ----------- | ------ | ------- |---|
+{%- for pipe in Pipelines %}
+| {{pipe.name}} | {{Description(pipe)}} | {{Author(pipe)}} | {{Created(pipe)}} | {{LinkToPipe(pipe)}} |
+{%- endfor %}

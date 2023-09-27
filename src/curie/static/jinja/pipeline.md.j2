@@ -1,0 +1,173 @@
+{%- macro modeInPipe(etl, mode) -%}
+{%- for node in config.etl -%}
+{%- if mode in config.etl[node] -%}
+true
+{%- endif -%}
+{%- endfor -%}
+{%- endmacro -%}
+
+{%- macro variantIters(iterators) -%}
+Iters
+{%- endmacro -%}
+
+{%- macro NodeVisual(name, def)-%}
+{%- if def.variants is defined -%}
+{{name}}({{name}} fa:fa-atom)
+{%- else -%}
+{{name}}({{name}})
+{%- endif -%}
+{%- endmacro -%}
+
+{%- macro DagEtl(etl, mode) -%}
+{% set prior = namespace(buf="") %}
+{%- for node in etl -%}
+{%- if etl[node][mode] is defined -%}
+{%- if etl[node][mode].depends_on is defined -%}
+{% for dep in etl[node][mode].depends_on %}
+    {{dep}} --> {{node}}
+{%- endfor -%}
+{% else %}
+{{NodeVisual(node, etl[node][mode])}}
+{%- endif -%}
+{%- endif -%}
+{% if not loop.first %}
+{{prior.buf}} .-> {{node}}
+{% endif %}
+{% set prior.buf = node%}
+{%- endfor -%}
+{%- endmacro -%}
+
+{%- macro packDependencyTrees(name, etl) -%}
+{% if modeInPipe(etl, 'run') %}
+=== "Run"
+
+    ``` mermaid
+    flowchart
+        direction TB
+{% filter indent()%}
+{{DagEtl(etl, 'run')}}
+{% endfilter %}
+
+    ```
+{% endif %}
+
+{% if modeInPipe(etl, 'save') %}
+=== "Save"
+    
+    ``` mermaid
+    flowchart
+        direction TB
+{% filter indent()%}
+{{DagEtl(etl, 'save')}}
+{% endfilter %}
+    ```
+{% endif %}
+{%- endmacro -%}
+
+{%- macro AuthorsButtons(authorsList) -%}
+{%- for auth in authorsList -%}
+[{{auth.name}}{%if auth.is_primary is defined and auth.is_primary %}:fontawesome-solid-star:{% endif %}](mailto:{{auth.email|default('')}}){.md-button}
+{%- endfor -%}
+{%- endmacro -%}
+
+# {{def.name}}
+
+{% if (def.meta is defined) and  (def.meta.description is defined) %}
+!!! note "Description"
+{% filter indent() %}
+{{def.meta.description}}
+{% endfilter %}
+{%- endif -%}
+
+{% if (def.meta is defined) %}
+!!! info "Pipeline Metadata"
+
+{% filter indent() %}
+|  |  |
+|-----|-----|
+| **Created At** | {{def.meta.created_at|default('')}} |
+| **Authors** | {{AuthorsButtons(def.meta.authors)|default('')}} |
+
+{% endfilter %}
+
+{%- endif -%}
+{{packDependencyTrees(def.name, config.etl)}}
+
+
+{%- macro SaveMode(name, node) -%}
+```sql
+{% if node.script is defined %}
+{{ import_raw(node.script) }}
+{% endif %}
+{% if node.query is defined %}
+{{ prettySQL(node.query) }}
+{% endif %}
+```
+{%- endmacro -%}
+
+{%- macro RunMode(name, node) -%}
+```sql
+{% if node.script is defined %}
+{{ import_raw(node.script) }}
+{% endif %}
+{% if node.query is defined %}
+{{ prettySQL(node.query) }}
+{% endif %}
+```
+{%- endmacro -%}
+
+{%- macro DescribeNode(name, node) -%}
+## {{name}} {{":fontawesome-solid-atom:{title=\"%s has Variants\"}"|format(name) if (node.save is defined) and (node.save.variants is defined) else ""}}
+{%- if node.meta is defined -%}
+{% if node.meta.description is defined %}
+!!! note "Description"
+{% filter indent() %}
+{{node.meta.description}}
+{% endfilter %}
+{% endif %}
+{%- if node.meta.authors is defined -%}
+??? author "Authors"
+{% filter indent() %}
+{{AuthorsButtons(node.meta.authors)}}
+{% endfilter %}
+{%- endif -%}
+
+{%- endif -%}
+{%if node.run is defined %}
+=== "Run"
+{% filter indent() %}
+{{RunMode(name, node.run)}}
+{% endfilter %}
+{% endif %}
+
+{%if node.save is defined %}
+=== "Save {{":fontawesome-solid-atom:" if node.save.variants is defined else ""}}"
+{% filter indent() %}
+{{SaveMode(name, node.save)}}
+{% endfilter %}
+{% endif %}
+
+{% if node.save is defined and node.save.variants is defined %}
+??? variant "Variants"
+{% filter indent() %}
+| Variant Name | Description | Iterating | Resulting File Type |
+|--------------|-------------|-----------|---------------------|
+{%- for variant in node.save.variants %}
+| "{{variant.name|default("")}}" | {{variant.description|default("")}} | {{":fontawesome-solid-check:" if variant.iterate_on is defined else ":fontawesome-solid-x:" }} | {{variant.filetype|default("csv")}} |
+{% endfor %}
+{% endfilter %}
+{% endif %}
+
+{% if node.meta is defined and node.meta.fields is defined %}
+<h4>Fields</h4>
+| Field Name | Description | Type | Primary Key | Foriegn Key | Nullable |
+|------------|-------------|------|-------------|-------------|----------|
+{%- for field in node.meta.fields %}
+| {{field.name|default("")}} | {{field.description|default("")}} | {{field.type|default("")}} | {{field.is_primary|default("")}} | {{field.is_foriegn|default("")}} | {{field.is_nullable|default("")}} |
+{%- endfor -%}
+{%- endif -%}
+{%- endmacro -%}
+
+{% for node in config.etl %}
+{{DescribeNode(node, config.etl[node])}}
+{% endfor %}

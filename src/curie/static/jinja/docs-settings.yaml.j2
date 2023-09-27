@@ -1,0 +1,57 @@
+site_name: {{site.name}}
+site_description: {{site.description}}
+nav:
+  - Home: index.md
+  - Pipelines: 
+    - Overview: project.md
+    {% for pipeline in site.nav.pipelines %}
+    - {{pipeline.name}}: {{pipeline.link}}
+    {% endfor %}
+
+
+theme: 
+  name: material
+  palette:
+    - scheme: default
+      primary: {{site.primary_color}}
+      accent: {{site.accent_color}}
+      toggle:
+        icon: material/weather-night 
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: {{site.primary_color}}
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+plugins:
+  - mkdocstrings
+  - tags
+markdown_extensions:
+  - tables
+  - attr_list
+  - md_in_html
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true 
+extra_css:
+  - stylesheets/extra.css
+  - https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css
+extra_javascript:
+  - javascripts/buttons.js
