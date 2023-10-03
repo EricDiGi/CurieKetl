@@ -174,11 +174,16 @@ class ProjectManager:
             region (str, optional): Region to load the secret from. Defaults to None.
         """
         if secretsmanager is not None:
-            b3s = Secrets(secretsmanager, region)
-            b3sjson = json.loads(b3s.secret)
-            logging.info(f"Loaded secrets from AWS Secrets Manager: {secretsmanager}")
-            logging.debug(f"Secret Key Names: {b3sjson.keys()}")
-            return b3sjson
+            try:
+                b3s = Secrets(secretsmanager, region)
+                b3sjson = json.loads(b3s.secret)
+                logging.info(f"Loaded secrets from AWS Secrets Manager: {secretsmanager}")
+                logging.debug(f"Secret Key Names: {b3sjson.keys()}")
+                return b3sjson
+            except Exception as e:
+                logging.error(f"Failed to load secrets from AWS Secrets Manager: {secretsmanager}")
+                logging.error(e)
+                return {}
     
     def build_connections(self, path:str = None):
         """
