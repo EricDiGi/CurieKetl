@@ -161,6 +161,8 @@ class ProjectManager:
         """
         path = ensure_rooting(path)
         env = dotenv_values(path)
+        logging.debug(f"Loaded environment variables from {path}")
+        logging.debug(f"Environment Variables: {env.keys()}")
         return dict(env)
     
     def boto3(self, secretsmanager:str = None):
@@ -191,7 +193,7 @@ class ProjectManager:
                     # > If there are secrets, load them and render the connection string
                     if 'secrets' in cons[db][profile]:
                         handler = list(cons[db][profile]['secrets'].keys())[0]
-                        print(handler)
+                        logging.debug(f"Loading secrets for {db} {profile} using {handler}")
                         secrets = getattr(self, handler)(**cons[db][profile]['secrets'][handler])
                         for key in cons[db][profile]:
                             if key != 'secrets':
