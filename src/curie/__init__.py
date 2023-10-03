@@ -165,15 +165,16 @@ class ProjectManager:
         logging.debug(f"Environment Variables: {env.keys()}")
         return dict(env)
     
-    def boto3(self, secretsmanager:str = None):
+    def boto3(self, secretsmanager:str = None, region:str = None):
         """
         Loads the secrets from AWS Secrets Manager
 
         Args:
             secretsmanager (str, optional): Name of the secret to load. Defaults to None.
+            region (str, optional): Region to load the secret from. Defaults to None.
         """
         if secretsmanager is not None:
-            b3s = Secrets(secretsmanager)
+            b3s = Secrets(secretsmanager, region)
             b3sjson = json.loads(b3s.secret)
             logging.info(f"Loaded secrets from AWS Secrets Manager: {secretsmanager}")
             logging.debug(f"Secret Key Names: {b3sjson.keys()}")

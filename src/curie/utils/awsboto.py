@@ -4,8 +4,9 @@ import sys
 import base64
 
 class Secrets:
-    def __init__(self, secretId) -> None:
+    def __init__(self, secretId, region) -> None:
         self.secretId_ = secretId
+        self.region_ = region
         self.__get_secret()
     
     def __get_secret(self):
@@ -13,7 +14,7 @@ class Secrets:
         returns a dictionary of secrets
         """
         try:
-            client = boto3.client('secretsmanager')
+            client = boto3.client('secretsmanager', region_name=self.region_)
             response = client.get_secret_value(SecretId=self.secretId_)
         except:
             print("Unexpected error:", sys.exc_info()[0])
