@@ -2,8 +2,10 @@ import os
 import shutil
 from glob import glob
 from typing import Any, Dict, List
+import logging
 
 import yaml
+import json
 from dotenv import dotenv_values
 
 from . import connect, modes
@@ -170,8 +172,10 @@ class ProjectManager:
         """
         if secretsmanager is not None:
             b3s = Secrets(secretsmanager)
-            print(type(b3s.secret))
-            return b3s.secret
+            b3sjson = json.loads(b3s.secret)
+            logging.info(f"Loaded secrets from AWS Secrets Manager: {secretsmanager}")
+            logging.debug(f"Secret Key Names: {b3sjson.keys()}")
+            return b3sjson
     
     def build_connections(self, path:str = None):
         """
