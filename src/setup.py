@@ -18,7 +18,10 @@ setup(name='pycurie',
           'PyYAML',
           'Jinja2',
           'boto3',
-          'python-dotenv'
+          'python-dotenv',
+          'pandas',
+          'IPython',
+          'sqlparse'
       ],
       entry_points={
           'console_scripts': [
