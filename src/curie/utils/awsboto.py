@@ -24,3 +24,7 @@ class Secrets:
             else:
                 secret = base64.b64decode(response['SecretBinary'])
         return secret
+    
+    @property
+    def secret(self):
+        return self.__get_secret()
