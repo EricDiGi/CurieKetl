@@ -170,6 +170,7 @@ class ProjectManager:
         """
         if secretsmanager is not None:
             b3s = Secrets(secretsmanager)
+            print(b3s.secret)
             return dict(b3s.secret)
     
     def build_connections(self, path:str = None):
