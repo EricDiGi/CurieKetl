@@ -106,6 +106,11 @@ def main():
     subparsers = parser.add_subparsers(dest='command')
     subparsers.required = True
 
+    # Global flags
+    parser.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
+    parser.add_argument('--debug', '-d', action='store_true', help='Debug output')
+    parser.add_argument('--version', action='store_true', help='Print version and exit')
+
     # ETL subparser
     etl_parser = subparsers.add_parser('etl', help='ETL')
     etl_parser.add_argument('mode', choices=['run', 'save', 'clean','deploy'], help='Mode to run the pipeline in')
@@ -133,8 +138,20 @@ def main():
     # Parse arguments
     args = parser.parse_args()
 
-    # Execute correct function using mapping
+    # HANDLE GLOBAL FLAGS
+    setup_logging = {
+        'verbose': logging.INFO,
+        'debug': logging.DEBUG
+    }
+    level = setup_logging['debug'] if args.debug else setup_logging['verbose'] if args.verbose else logging.ERROR
+    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=level)
 
+    if args.version:
+        from . import __version__
+        print(__version__)
+        sys.exit(0)
+    
+    # Execute correct function using mapping
     command_mapping = {
         'etl': etl,
         'docs': docs,

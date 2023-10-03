@@ -120,7 +120,7 @@ class Redshift(Database):
             self.conn_.close()
             return True
         except Exception as e:
-            log.error(e.with_traceback())
+            log.error(e)
             return False
         
 class MySQL(Database):
