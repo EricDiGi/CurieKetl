@@ -152,20 +152,28 @@ class ProjectManager:
     ###########################################################
     # Environment Loading Functions
     ###########################################################
-    def env_file(self, path:str = None):
+    def env_file(self, path:str = None, **kwargs:dict):
+        profile = "Unknown" if 'profile' not in kwargs else kwargs['profile']
         """
         Loads the environment variables from the specified path
 
         Args:
             path (str, optional): Path to the environment file. Defaults to None.
         """
-        path = ensure_rooting(path)
-        env = dotenv_values(path)
-        logging.debug(f"Loaded environment variables from {path}")
-        logging.debug(f"Environment Variables: {env.keys()}")
-        return dict(env)
+        try:
+            path = ensure_rooting(path)
+            env = dotenv_values(path)
+            logging.debug(f"Loaded environment variables from {path}")
+            logging.debug(f"Environment Variables: {env.keys()}")
+            return dict(env)
+        except Exception as e:
+            logging.error(f"Failed to load environment variables from {path}")
+            logging.error("Unable to locate credentials for connection profile: {}".format(profile))
+            logging.error("If this is not the active profile for the pipeline disregard this error.")
+            return {}
     
-    def boto3(self, secretsmanager:str = None, region:str = None):
+    def boto3(self, secretsmanager:str = None, region:str = None, **kwargs:dict):
+        profile = "Unknown" if 'profile' not in kwargs else kwargs['profile']
         """
         Loads the secrets from AWS Secrets Manager
 
@@ -182,7 +190,8 @@ class ProjectManager:
                 return b3sjson
             except Exception as e:
                 logging.error(f"Failed to load secrets from AWS Secrets Manager: {secretsmanager}")
-                logging.error(e)
+                logging.error("Unable to locate credentials for connection profile: {}".format(profile))
+                logging.error("If this is not the active profile for the pipeline disregard this error.")
                 return {}
     
     def build_connections(self, path:str = None):
