@@ -209,7 +209,7 @@ class ProjectManager:
                     if 'secrets' in cons[db][profile]:
                         handler = list(cons[db][profile]['secrets'].keys())[0]
                         logging.debug(f"Loading secrets for {db} {profile} using {handler}")
-                        secrets = getattr(self, handler)(**cons[db][profile]['secrets'][handler])
+                        secrets = getattr(self, handler)(**cons[db][profile]['secrets'][handler],profile=profile)
                         for key in cons[db][profile]:
                             if key != 'secrets':
                                 cons[db][profile][key] = self.j2.from_string(cons[db][profile][key]).render(**secrets)
@@ -229,6 +229,7 @@ class ProjectManager:
             self.build_connections(project['Project']['Connections'])
             for pipeline in project['Project']['Pipelines']:
                 self.pipelines[pipeline['name']] = Pipeline(**pipeline, context=self.connections)
+    
     def clean(self, pipeline:str = 'all'):
         print(pipeline)
         """
