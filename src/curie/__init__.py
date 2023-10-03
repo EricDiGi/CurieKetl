@@ -152,32 +152,49 @@ class ProjectManager:
     ###########################################################
     # Environment Loading Functions
     ###########################################################
-    def env_file(self, path:str = None):
+    def env_file(self, path:str = None, **kwargs:dict):
+        profile = "Unknown" if 'profile' not in kwargs else kwargs['profile']
         """
         Loads the environment variables from the specified path
 
         Args:
             path (str, optional): Path to the environment file. Defaults to None.
         """
-        path = ensure_rooting(path)
-        env = dotenv_values(path)
-        logging.debug(f"Loaded environment variables from {path}")
-        logging.debug(f"Environment Variables: {env.keys()}")
-        return dict(env)
+        try:
+            path = ensure_rooting(path)
+            env = dotenv_values(path)
+            if len(env) == 0:
+                raise Exception("No environment variables found")
+            logging.debug(f"Loaded environment variables from {path}")
+            logging.debug(f"Environment Variables: {env.keys()}")
+            return dict(env)
+        except Exception as e:
+            logging.error(f"Failed to load environment variables from {path}")
+            logging.error("Unable to locate credentials for connection profile: {}".format(profile))
+            logging.error("If this is not the active profile for the selected pipeline disregard this error.")
+            return {}
     
-    def boto3(self, secretsmanager:str = None):
+    def boto3(self, secretsmanager:str = None, region:str = None, **kwargs:dict):
+        profile = "Unknown" if 'profile' not in kwargs else kwargs['profile']
         """
         Loads the secrets from AWS Secrets Manager
 
         Args:
             secretsmanager (str, optional): Name of the secret to load. Defaults to None.
+            region (str, optional): Region to load the secret from. Defaults to None.
         """
         if secretsmanager is not None:
-            b3s = Secrets(secretsmanager)
-            b3sjson = json.loads(b3s.secret)
-            logging.info(f"Loaded secrets from AWS Secrets Manager: {secretsmanager}")
-            logging.debug(f"Secret Key Names: {b3sjson.keys()}")
-            return b3sjson
+            try:
+                b3s = Secrets(secretsmanager, region)
+                b3sjson = json.loads(b3s.secret)
+                logging.info(f"Loaded secrets from AWS Secrets Manager: {secretsmanager}")
+                logging.debug(f"Secret Key Names: {b3sjson.keys()}")
+                return b3sjson
+            except Exception as e:
+                logging.error(f"Failed to load secrets from AWS Secrets Manager: {secretsmanager}")
+                logging.error("Unable to locate credentials for connection profile: {}".format(profile))
+                logging.error("If this is not the active profile for the selected pipeline disregard this error.")
+                return {}
     
     def build_connections(self, path:str = None):
         """
@@ -194,7 +211,7 @@ class ProjectManager:
                     if 'secrets' in cons[db][profile]:
                         handler = list(cons[db][profile]['secrets'].keys())[0]
                         logging.debug(f"Loading secrets for {db} {profile} using {handler}")
-                        secrets = getattr(self, handler)(**cons[db][profile]['secrets'][handler])
+                        secrets = getattr(self, handler)(**cons[db][profile]['secrets'][handler],profile=profile)
                         for key in cons[db][profile]:
                             if key != 'secrets':
                                 cons[db][profile][key] = self.j2.from_string(cons[db][profile][key]).render(**secrets)
@@ -214,6 +231,7 @@ class ProjectManager:
             self.build_connections(project['Project']['Connections'])
             for pipeline in project['Project']['Pipelines']:
                 self.pipelines[pipeline['name']] = Pipeline(**pipeline, context=self.connections)
+    
     def clean(self, pipeline:str = 'all'):
         print(pipeline)
         """
