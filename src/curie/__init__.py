@@ -163,13 +163,15 @@ class ProjectManager:
         try:
             path = ensure_rooting(path)
             env = dotenv_values(path)
+            if len(env) == 0:
+                raise Exception("No environment variables found")
             logging.debug(f"Loaded environment variables from {path}")
             logging.debug(f"Environment Variables: {env.keys()}")
             return dict(env)
         except Exception as e:
             logging.error(f"Failed to load environment variables from {path}")
             logging.error("Unable to locate credentials for connection profile: {}".format(profile))
-            logging.error("If this is not the active profile for the pipeline disregard this error.")
+            logging.error("If this is not the active profile for the selected pipeline disregard this error.")
             return {}
     
     def boto3(self, secretsmanager:str = None, region:str = None, **kwargs:dict):
@@ -191,7 +193,7 @@ class ProjectManager:
             except Exception as e:
                 logging.error(f"Failed to load secrets from AWS Secrets Manager: {secretsmanager}")
                 logging.error("Unable to locate credentials for connection profile: {}".format(profile))
-                logging.error("If this is not the active profile for the pipeline disregard this error.")
+                logging.error("If this is not the active profile for the selected pipeline disregard this error.")
                 return {}
     
     def build_connections(self, path:str = None):
