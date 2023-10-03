@@ -162,6 +162,7 @@ class MySQL(Database):
     def connect(self):
         # use global variables to connect to redshift
         try:
+            # print(self.__repr__())
             self.conn_ = mysql_connector.connect(host=self.host_, port=self.port_, user=self.user_, password=self.password_, database=self.database_, **self.kwargs_)
             log.info("Connected to MySQL...")
             return self.conn_
@@ -169,11 +170,11 @@ class MySQL(Database):
             if self.reminder_:
                 log.error("REMINDER: " + self.reminder_)
             log.error("Error: Could not connect to MySQL. Check your credentials.")
-            log.error(e.with_traceback())
+            log.error(e)
             return None
     
     def __repr__(self):
-        return "MySQL(host={}, port={}, user={}, database={}, kwargs={})".format(self.host_, self.port_, self.user_, self.database_, self.kwargs_)
+        return "MySQL(host={}, port={}, user={}, database={}, password={}, kwargs={})".format(self.host_, self.port_, self.user_, self.database_,self.password_, self.kwargs_)
     
     def method_patterns(self):
         return {
@@ -209,5 +210,5 @@ class MySQL(Database):
             self.conn_.close()
             return True
         except Exception as e:
-            log.error(e.with_traceback())
+            log.error(e)
             return False  

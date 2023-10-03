@@ -10,6 +10,7 @@ from . import connect, modes
 from .dag import DAG
 from .utils.jinja import Environment
 from .utils.paths import ensure_rooting
+from .utils.awsboto import Secrets
 
 class Pipeline:
     def __init__(self,name:str = None, pipeline:str = None, compile_path:str = None, download:str = None, connection:str = None, context:List[Any] = list(),  meta:Dict[str, Any] = None):
@@ -160,6 +161,17 @@ class ProjectManager:
         env = dotenv_values(path)
         return dict(env)
     
+    def boto3(self, secretsmanager:str = None):
+        """
+        Loads the secrets from AWS Secrets Manager
+
+        Args:
+            secretsmanager (str, optional): Name of the secret to load. Defaults to None.
+        """
+        if secretsmanager is not None:
+            b3s = Secrets(secretsmanager)
+            return dict(b3s.__get_secret())
+    
     def build_connections(self, path:str = None):
         """
         Prepare all connections defined in the connections configuration file
@@ -174,6 +186,7 @@ class ProjectManager:
                     # > If there are secrets, load them and render the connection string
                     if 'secrets' in cons[db][profile]:
                         handler = list(cons[db][profile]['secrets'].keys())[0]
+                        print(handler)
                         secrets = getattr(self, handler)(**cons[db][profile]['secrets'][handler])
                         for key in cons[db][profile]:
                             if key != 'secrets':
