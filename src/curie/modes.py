@@ -165,7 +165,7 @@ class save(Mode):
                         cont = context.copy()
                         cont.update(overrides)
                         if isinstance(variant['iterate_on'][arg], str):
-                            variant['iterate_on'][arg] = json.loads(self.j2.from_string(variant['arguments'][arg]).render(**cont))
+                            variant['iterate_on'][arg] = json.loads(self.j2.from_string(variant['arguments'][arg]).render(**cont).replace("'", '"'))
                 iterator_profiles = [] # List of dictionaries
                 # Validate the iteration profiles are the same length
                 if len(set([len(k) for k in variant['iterate_on'].values()])) > 1:
