@@ -59,5 +59,5 @@ class CFN:
     
     @property
     def secret(self):
-        return self.__get_stack()
+        return self.value
         
