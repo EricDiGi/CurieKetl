@@ -48,8 +48,8 @@ class CFN:
             try:
                 exports = response['Exports']
                 export = list(filter(lambda x: x['Name'] == self.stackName_, exports))[0]
-                print(export)
                 self.value = export['Value']
+                return self.value
             except:
                 self.value = None
                 raise
