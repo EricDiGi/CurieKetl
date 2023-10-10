@@ -47,7 +47,8 @@ class CFN:
             response = client.list_exports()
             try:
                 exports = response['Exports']
-                export =list(filter(lambda x: x['Name'] == self.stackName_, exports))[0]
+                print(exports)
+                export = list(filter(lambda x: x['Name'] == self.stackName_, exports))[0]
                 self.value = export['Value']
             except:
                 self.value = None
