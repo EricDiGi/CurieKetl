@@ -12,7 +12,7 @@ from . import connect, modes
 from .dag import DAG
 from .utils.jinja import Environment
 from .utils.paths import ensure_rooting
-from .utils.awsboto import Secrets
+from .utils.awsboto import Secrets, CFN
 
 class Pipeline:
     def __init__(self,name:str = None, pipeline:str = None, compile_path:str = None, download:str = None, connection:str = None, context:List[Any] = list(),  meta:Dict[str, Any] = None):
@@ -174,7 +174,11 @@ class ProjectManager:
             logging.error("If this is not the active profile for the selected pipeline disregard this error.")
             return {}
     
-    def boto3(self, secretsmanager:str = None, region:str = None, **kwargs:dict):
+    def boto3(self, 
+              secretsmanager:str = None, 
+              cfnexport:str = None,
+              region:str = None, 
+              **kwargs:dict):
         profile = "Unknown" if 'profile' not in kwargs else kwargs['profile']
         """
         Loads the secrets from AWS Secrets Manager
@@ -192,6 +196,19 @@ class ProjectManager:
                 return b3sjson
             except Exception as e:
                 logging.error(f"Failed to load secrets from AWS Secrets Manager: {secretsmanager}")
+                logging.error("Unable to locate credentials for connection profile: {}".format(profile))
+                logging.error("If this is not the active profile for the selected pipeline disregard this error.")
+                return {}
+        
+        if cfnexport is not None:
+            try:
+                cfn = CFN(cfnexport, region)
+                cfnjson = json.loads(cfn.secret)
+                logging.info(f"Loaded secrets from AWS CloudFormation: {cfnexport}")
+                logging.debug(f"Secret Key Names: {cfnjson.keys()}")
+                return cfnjson
+            except Exception as e:
+                logging.error(f"Failed to load secrets from AWS CloudFormation: {cfnexport}")
                 logging.error("Unable to locate credentials for connection profile: {}".format(profile))
                 logging.error("If this is not the active profile for the selected pipeline disregard this error.")
                 return {}

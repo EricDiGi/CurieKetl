@@ -29,3 +29,34 @@ class Secrets:
     @property
     def secret(self):
         return self.__get_secret()
+
+class CFN:
+    def __init__(self, stackName, region) -> None:
+        self.stackName_ = stackName
+        self.region_ = region
+        self.sm_value = self.__get_stack()
+        self.sm = Secrets(self.sm_value, self.region_)
+        self.value = self.sm.secret
+    
+    def __get_stack(self):
+        """
+        returns a dictionary of stack outputs
+        """
+        try:
+            client = boto3.client('cloudformation', region_name=self.region_)
+            response = client.list_exports()
+            try:
+                exports = response['Exports']
+                export =list(filter(lambda x: x['Name'] == self.stackName_, exports))[0]
+                self.value = export['Value']
+            except:
+                self.value = None
+                raise
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+            raise
+    
+    @property
+    def secret(self):
+        return self.__get_stack()
+        
