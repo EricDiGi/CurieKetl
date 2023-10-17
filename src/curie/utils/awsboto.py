@@ -37,8 +37,8 @@ class CFN:
         self.sm_value = self.__get_stack()
         self.sm = Secrets(self.sm_value, self.region_)
         self.value = self.sm.secret
-        print(self.value)
-    
+
+
     def __get_stack(self):
         """
         returns a dictionary of stack outputs
