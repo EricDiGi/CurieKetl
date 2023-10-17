@@ -1,4 +1,5 @@
 import os
+global __project_root__
 
 def find_root(landmark: str = 'project.yaml') -> str:
     """
@@ -20,7 +21,15 @@ try:
 except FileNotFoundError:
     __project_root__ = None
 
+def set_root(path = None) -> str:
+    global __project_root__
+    # Set the project root if it has not been set
+    if path is not None:
+        __project_root__ = path
+    return __project_root__
+
 def ensure_rooting(path) -> str:
+    global __project_root__
     """
     Ensure that the path is rooted to the project.
     """
@@ -30,6 +39,7 @@ def ensure_rooting(path) -> str:
         return os.path.normpath(os.path.join(__project_root__, path))
 
 def unroot(path) -> str:
+    global __project_root__
     """
     Ensure that the path is unrooted from the project.
     """
