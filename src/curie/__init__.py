@@ -11,8 +11,8 @@ from dotenv import dotenv_values
 from . import connect, modes
 from .dag import DAG
 from .utils.jinja import Environment
-from .utils.paths import ensure_rooting
-from .utils.awsboto import Secrets
+from .utils.paths import ensure_rooting, set_root
+from .utils.awsboto import Secrets, CFN
 
 class Pipeline:
     def __init__(self,name:str = None, pipeline:str = None, compile_path:str = None, download:str = None, connection:str = None, context:List[Any] = list(),  meta:Dict[str, Any] = None):
@@ -49,7 +49,7 @@ class Pipeline:
         """
         if path:
             self.path = path
-        with open(self.path, 'r') as f:
+        with open(ensure_rooting(self.path), 'r') as f:
             pipe = yaml.safe_load(f)
             self.arguments = pipe['arguments']
             self.dag = DAG(pipe['etl'],defaults=self.arguments)
@@ -135,7 +135,7 @@ class Pipeline:
 
 class ProjectManager:
     j2 = Environment() # Jinja2 environment for rendering templates
-    def __init__(self, path:str = None, defer_imports:bool = False):
+    def __init__(self,root:str = None, path:str = None, defer_imports:bool = False):
         """
         ProjectManager object for coordinating pipelines and connections
 
@@ -143,10 +143,12 @@ class ProjectManager:
             path (str, optional): Path to the project file. Defaults to None.
             defer_imports (bool, optional): Whether to defer imports of the connections. Defaults to False.
         """
+        self.root = root
         self.path = path
         self.pipelines = {}
         self.connections = {}
         self.defer_imports = defer_imports
+        set_root(root)
         self.load_pipelines(path)
 
     ###########################################################
@@ -174,7 +176,11 @@ class ProjectManager:
             logging.error("If this is not the active profile for the selected pipeline disregard this error.")
             return {}
     
-    def boto3(self, secretsmanager:str = None, region:str = None, **kwargs:dict):
+    def boto3(self, 
+              secretsmanager:str = None, 
+              cfnexport:str = None,
+              region:str = None, 
+              **kwargs:dict):
         profile = "Unknown" if 'profile' not in kwargs else kwargs['profile']
         """
         Loads the secrets from AWS Secrets Manager
@@ -192,6 +198,19 @@ class ProjectManager:
                 return b3sjson
             except Exception as e:
                 logging.error(f"Failed to load secrets from AWS Secrets Manager: {secretsmanager}")
+                logging.error("Unable to locate credentials for connection profile: {}".format(profile))
+                logging.error("If this is not the active profile for the selected pipeline disregard this error.")
+                return {}
+        
+        if cfnexport is not None:
+            try:
+                cfn = CFN(cfnexport, region)
+                cfnjson = json.loads(cfn.secret)
+                logging.info(f"Loaded secrets from AWS CloudFormation: {cfnexport}")
+                logging.debug(f"Secret Key Names: {cfnjson.keys()}")
+                return cfnjson
+            except Exception as e:
+                logging.error(f"Failed to load secrets from AWS CloudFormation: {cfnexport}")
                 logging.error("Unable to locate credentials for connection profile: {}".format(profile))
                 logging.error("If this is not the active profile for the selected pipeline disregard this error.")
                 return {}
@@ -255,23 +274,26 @@ class Curie:
         path (str, optional): Path to the project file. Defaults to None.
         defer_imports (bool, optional): Whether to defer imports of the connections. Defaults to False.
     """
-    def __init__(self, path:str = None, defer_imports:bool = False):
+    def __init__(self,root:str = None, path:str = None, defer_imports:bool = False):
         self.path = path
+        self.root = root
         self.project = None
         self.defer_imports = defer_imports
-        self.load(path)
+        self.load(root, path)
 
         self.active_pipeline_name = None
         self.active_pipeline = None
         self.compiled_pipeline = None
         
-    def load(self, path:str = None):
+    def load(self,root:str = None, path:str = None):
         """
         Loads the project from the specified path
 
         Args:
             path (str, optional): Path to the project file. Defaults to None.
         """
+        if root:
+            set_root(root)
         if path is None:
             globbed = glob('**/project.yaml', recursive=True)
             if len(globbed) == 0:
@@ -281,7 +303,7 @@ class Curie:
             else:
                 path = globbed[0]
         self.path = path
-        self.project = ProjectManager(path, defer_imports=self.defer_imports)
+        self.project = ProjectManager(root, path, defer_imports=self.defer_imports)
 
     def pipeline(self, name:str):
         """
